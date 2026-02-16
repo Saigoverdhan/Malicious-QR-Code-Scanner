@@ -1,0 +1,7 @@
+{
+  "name": "QR Shield",
+  "description": "A modern web application that detects phishing links and malicious URLs hidden inside QR codes using AI-powered analysis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
