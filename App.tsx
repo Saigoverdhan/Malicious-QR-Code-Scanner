@@ -26,7 +26,10 @@ const App: React.FC = () => {
     script.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
     script.async = true;
     document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    return () => { 
+      const scriptTags = document.querySelectorAll('script[src*="jsqr"]');
+      scriptTags.forEach(s => s.remove());
+    };
   }, []);
 
   useEffect(() => {
@@ -42,12 +45,14 @@ const App: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      // Use refined Gemini Pro analysis
       const analysis = await analyzeURL(url);
       const newResult: ScanResult = { url, ...analysis, timestamp: Date.now() };
       setResult(newResult);
       setHistory(prev => [newResult, ...prev]);
     } catch (err) {
-      setError("Analysis engine failed. Checking network...");
+      console.error(err);
+      setError("AI analysis failed to process the link. Please check your internet connection.");
     } finally {
       setLoading(false);
     }
@@ -62,11 +67,11 @@ const App: React.FC = () => {
       const url = await decodeQRCodeFromImage(file);
       if (url) await handleScan(url);
       else {
-        setError("No readable QR code found in image.");
+        setError("Could not find a valid QR code in that image. Try a clearer photo.");
         setLoading(false);
       }
     } catch (err) {
-      setError("Failed to process image file.");
+      setError("Failed to process the uploaded image.");
       setLoading(false);
     }
   };
@@ -98,11 +103,12 @@ const App: React.FC = () => {
              <button 
                 onClick={() => setDarkMode(!darkMode)}
                 className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-slate-200/50 dark:hover:bg-white/10 transition-colors"
+                aria-label="Toggle Dark Mode"
               >
                 {darkMode ? <Sun size={20} className="text-white" /> : <Moon size={20} className="text-slate-700" />}
               </button>
               <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10 mx-2"></div>
-              <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all hover:scale-105">
+              <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95">
                 Pro Tools
               </button>
           </div>
@@ -122,8 +128,10 @@ const App: React.FC = () => {
                     <Zap className="w-8 h-8 text-blue-500 animate-pulse" />
                   </div>
                 </div>
-                <h3 className="text-2xl font-extrabold mb-2 dark:text-white">Neural Analysis</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Deconstructing URL structure and scanning global threat intelligence...</p>
+                <h3 className="text-2xl font-extrabold mb-2 dark:text-white tracking-tight">AI Neural Analysis</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+                  Deconstructing URL metadata and scanning global threat intelligence databases...
+                </p>
              </div>
           </div>
         )}
@@ -134,26 +142,26 @@ const App: React.FC = () => {
           <div className="flex flex-col items-center">
             
             {/* Hero Section */}
-            <div className="w-full text-center max-w-3xl mb-20 animate-in fade-in slide-in-from-bottom-10 duration-700">
+            <div className="w-full text-center max-w-3xl mb-16 animate-in fade-in slide-in-from-bottom-10 duration-700">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-6">
-                 <Lock size={12} /> Privacy Focused Phishing Prevention
+                 <Lock size={12} /> High-Precision Phishing Prevention
               </div>
               <h2 className="text-5xl sm:text-7xl font-[800] tracking-tight mb-8 leading-[0.95] dark:text-white">
-                Visit any QR code <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500">Without the Risk.</span>
+                Scan QR codes <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500">with confidence.</span>
               </h2>
               <p className="text-base sm:text-lg text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl mx-auto">
-                Quishing is on the rise. Shield your digital life with enterprise-grade AI link analysis built into your browser.
+                Advanced neural analysis for modern QR-based phishing ("Quishing") attacks. Get real-time protection on any device.
               </p>
             </div>
 
-            {/* Actions Grid (Bento Box Style) */}
+            {/* Actions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full max-w-5xl">
               
               {/* Primary Action */}
               <button 
                 onClick={() => setIsScanning(true)}
-                className="md:col-span-8 group relative overflow-hidden p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-white/5 hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-all duration-500 text-left shadow-xl shadow-slate-200/50 dark:shadow-none"
+                className="md:col-span-8 group relative overflow-hidden p-10 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-white/5 hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-all duration-500 text-left shadow-xl shadow-slate-200/50 dark:shadow-none active:scale-[0.98]"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                   <QrCode size={200} />
@@ -162,12 +170,12 @@ const App: React.FC = () => {
                   <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-10 shadow-xl shadow-blue-500/30 group-hover:scale-110 transition-transform">
                     <QrCode className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-3xl font-extrabold mb-3 dark:text-white">Live Lens</h3>
+                  <h3 className="text-3xl font-extrabold mb-3 dark:text-white">Launch Scanner</h3>
                   <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8 leading-relaxed">
-                    Open your camera and scan instantly. Our AI monitors the frame for potential threats in real-time.
+                    Uses the high-precision AI Lens to find and analyze QR codes instantly from your camera feed.
                   </p>
                   <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-sm">
-                    Initialize Scanner <ArrowRight size={16} />
+                    Activate Camera <ArrowRight size={16} />
                   </div>
                 </div>
               </button>
@@ -180,9 +188,9 @@ const App: React.FC = () => {
                     <Upload className="w-6 h-6 text-white dark:text-slate-900" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-extrabold mb-2 text-white dark:text-slate-900">Upload</h3>
+                    <h3 className="text-2xl font-extrabold mb-2 text-white dark:text-slate-900">Upload Image</h3>
                     <p className="text-white/50 dark:text-slate-900/50 text-xs font-medium leading-relaxed">
-                      Analyze saved photos or screenshots from your device.
+                      Deep-scan saved screenshots or photos for hidden malicious links.
                     </p>
                   </div>
                 </div>
@@ -194,8 +202,8 @@ const App: React.FC = () => {
                    <ShieldCheck size={24} className="text-emerald-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm dark:text-white">Malware Check</h4>
-                  <p className="text-[11px] text-slate-500">Global blacklists verified</p>
+                  <h4 className="font-bold text-sm dark:text-white tracking-tight">URL Forensics</h4>
+                  <p className="text-[11px] text-slate-500">Deep structural inspection</p>
                 </div>
               </div>
 
@@ -204,8 +212,8 @@ const App: React.FC = () => {
                    <Zap size={24} className="text-indigo-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm dark:text-white">Instant Results</h4>
-                  <p className="text-[11px] text-slate-500">Under 2.5s analysis time</p>
+                  <h4 className="font-bold text-sm dark:text-white tracking-tight">Real-time Intel</h4>
+                  <p className="text-[11px] text-slate-500">Powered by Gemini Pro</p>
                 </div>
               </div>
 
@@ -214,8 +222,8 @@ const App: React.FC = () => {
                    <Info size={24} className="text-amber-500" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm dark:text-white">Pattern Recognition</h4>
-                  <p className="text-[11px] text-slate-500">Detects typosquatting</p>
+                  <h4 className="font-bold text-sm dark:text-white tracking-tight">Zero-Trust Scan</h4>
+                  <p className="text-[11px] text-slate-500">Isolated analysis pipeline</p>
                 </div>
               </div>
             </div>
@@ -238,15 +246,15 @@ const App: React.FC = () => {
                        <HistoryIcon className="w-5 h-5 opacity-50 dark:text-white" />
                     </div>
                     <div>
-                       <h3 className="text-xl font-bold dark:text-white">Audit Log</h3>
-                       <p className="text-xs text-slate-400 font-medium">Your recent safety checks</p>
+                       <h3 className="text-xl font-bold dark:text-white tracking-tight">Security Audit History</h3>
+                       <p className="text-xs text-slate-400 font-medium">Verification logs for your protection</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setHistory([])}
                     className="text-xs font-extrabold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-widest"
                   >
-                    Wipe History
+                    Clear Logs
                   </button>
                 </div>
 
@@ -255,7 +263,7 @@ const App: React.FC = () => {
                     <button 
                       key={i} 
                       onClick={() => setResult(h)}
-                      className="group p-5 glass border border-white/20 dark:border-white/5 rounded-3xl flex items-center justify-between hover:border-blue-500 transition-all text-left"
+                      className="group p-5 glass border border-white/20 dark:border-white/5 rounded-3xl flex items-center justify-between hover:border-blue-500 transition-all text-left active:scale-[0.98]"
                     >
                       <div className="flex items-center gap-4 overflow-hidden">
                         <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors ${
@@ -267,7 +275,7 @@ const App: React.FC = () => {
                         <div className="overflow-hidden pr-4">
                           <p className="font-extrabold truncate text-sm dark:text-white group-hover:text-blue-500 transition-colors mb-0.5">{h.url}</p>
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                            {new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            Verified at {new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                       </div>
@@ -288,16 +296,15 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col items-center gap-6">
            <div className="flex items-center gap-3 opacity-30 grayscale contrast-150">
               <ShieldCheck size={24} className="dark:text-white" />
-              <h1 className="text-xl font-black tracking-tighter dark:text-white">QR SHIELD</h1>
+              <h1 className="text-xl font-black tracking-tighter dark:text-white uppercase">QR SHIELD</h1>
            </div>
            <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-             <a href="#" className="hover:text-blue-500 transition-colors">Privacy Policy</a>
-             <a href="#" className="hover:text-blue-500 transition-colors">Safety Guide</a>
-             <a href="#" className="hover:text-blue-500 transition-colors">Github Source</a>
+             <a href="#" className="hover:text-blue-500 transition-colors">Forensics Lab</a>
+             <a href="#" className="hover:text-blue-500 transition-colors">Global Threat Map</a>
              <a href="#" className="hover:text-blue-500 transition-colors">Security Research</a>
            </div>
            <p className="text-xs text-slate-400 font-medium opacity-50">
-            © {new Date().getFullYear()} QR Shield Intelligence. All models run in isolated environments.
+            © {new Date().getFullYear()} QR Shield Intelligence. AI models are trained on real-world quishing datasets.
            </p>
         </div>
       </footer>
